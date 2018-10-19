@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>練習</title>
+
+</head>
+<body>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA157iBugigDC2Xnqklc62c1rjLPg0KoLs"></script>
+<div id="map-canvas" style="width: 700px;height: 400px;"></div>
+<script>
+    var mapDiv = document.getElementById( "map-canvas" ) ;
+
+    // Map
+    var map = new google.maps.Map( mapDiv, {
+        center: new google.maps.LatLng( 35.71, 139.8107 ) ,
+        zoom: 11 ,
+    } ) ;
+
+    // Point
+    var point = new google.maps.Point( 0, -100 ) ;
+
+    // Marker
+    var marker = new google.maps.Marker( {
+        map: map ,
+        position: map.getCenter() ,
+        icon: {
+            url: "http://livedoor.blogimg.jp/jin115/imgs/7/f/7f9e279e.jpg" ,
+            scaledSize: new google.maps.Size( 200, 200 ) ,
+        } ,
+        anchorPoint: point ,
+    } ) ;
+
+    // InfoWindow
+    var infoWindow = new google.maps.InfoWindow( {
+        content: "SYNCER" ,
+    } ) ;
+
+    infoWindow.open( map, marker ) ;
+</script>
+<iframe src="https://www.google.com/maps/embed/v1/place?key=AIzaSyDbSCIe9u9tyzmG1OdAae8eRLPGmK5sevc&zoom=16&q=35.703496,139.751989&center=35.703496,139.751989" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
+</body>
+</html>
