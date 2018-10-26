@@ -83,7 +83,7 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 10 # 同一ドメインに対する並行リク
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-HTTPCACHE_ENABLED = True # キャッシュの有無
+# HTTPCACHE_ENABLED = True # キャッシュの有無
 HTTPCACHE_EXPIRATION_SECS = 60 * 60 * 24 # キャッシュのExpire期間
 HTTPCACHE_DIR = 'httpcache' # キャッシュの保存先
 #HTTPCACHE_IGNORE_HTTP_CODES = []

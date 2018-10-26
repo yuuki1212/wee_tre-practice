@@ -5,38 +5,184 @@
     <title>練習</title>
 
 </head>
-<body>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA157iBugigDC2Xnqklc62c1rjLPg0KoLs"></script>
+<body onload="initialize()">
+<form onsubmit="return false;">
+    <div>
+        <input type="text" id="spot_name">
+        <input type="submit" onclick="searchMap()" value="検索">
+    </div>
+    <div .>
+        <div >
+            <select id="drivingMode">
+                <option value="DRIVING">車</option>
+                <option value="BICYCLING">自転車</option>
+                <option value="TRANSIT">公共交通機関</option>
+                <option value="WALKING">徒歩</option>
+            </select>
+            <select id="transitMode">
+                <option value="BUS">バス</option>
+                <option value="RAIL">電車</option>
+                <option value="SUBWAY">地下鉄</option>
+                <option value="TRAIN">列車</option>
+                <option value="TRAM">トラム、ライトレール</option>
+            </select>
+            <select id="routingPreference">
+                <option value="FEWER_TRANSFERS">乗り継ぎ回数</option>
+                <option value="LESS_WALKING">歩行量</option>
+            </select>
+        </div>
+        <div>
+            <input type="text" id="start_route">
+            <input type="text" id="end_route">
+            <button type="button" onclick="calcRoute()">ルート検索</button>
+        </div>
+    </div>
+    <div>
+        <label type="label">半径の大きさ</label>
+        <input type="number" id="radius" min="50" max="10000" step="50">m
+    </div>
+</form>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAW2G-edOQPkWzUN8gAIt0Lu-mW9MtKwek"></script>
 <div id="map-canvas" style="width: 700px;height: 400px;"></div>
 <script>
     var mapDiv = document.getElementById( "map-canvas" ) ;
+    var geocoder;
+    var cicle;
+    var map;
+    var point;
+    var marker = null;
+    var myMarker;
+    var myLocation;
+    var searchLocation;
+    var directionsService;
+    var directionsDisplay;
+    // 乗り継ぎオプション
+    var transitOptions = {
+        arrivalTime: null,
+        departureTime: null,
+        modes: [],
+        routingPreference: null
+    }
+    // ルートリクエスト
+    var routeOptions = {
+        origin : null,              // 開始地点
+        destination : null,         // 終了地点
+        travelMode : null     // 走行モード
+    }
 
-    // Map
-    var map = new google.maps.Map( mapDiv, {
-        center: new google.maps.LatLng( 35.71, 139.8107 ) ,
-        zoom: 11 ,
-    } ) ;
+    function initialize() {
+        directionsService = new google.maps.DirectionsService();
+        directionsDisplay = new google.maps.DirectionsRenderer();
+        geocoder = new google.maps.Geocoder();
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                myLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                // マップの初期処理
+                map = new google.maps.Map( mapDiv, {
+                    center: myLocation,
+                    zoom: 15,
+                } ) ;
+                map.addListener('click', function (e) {
+                    if (marker != null) {
+                        marker.setMap(null);
+                        marker = null;
+                    }
+                    // マーカー設定
+                    marker = new google.maps.Marker({
+                        map: map,
+                        position: e.latLng,
+                        icon : './lc.png',
+                        animation : google.maps.Animation.DROP
+                    });
+                    searchLocation = e.latLng;
+                    directionsDisplay.setMap(null);
+                });
+                point = new google.maps.Point( 0, -100 ) ;
+                // 現在地マーカーの設定
+                myMarker = new google.maps.Marker( {
+                    map: map ,
+                    position: map.getCenter() ,
+                    anchorPoint: point ,
+                    icon : './myLc.png',
+                    animation: google.maps.Animation.BOUNCE
+                } ) ;
+                myMarker.addListener("click", function (e) {
+                    var r = document.getElementById("radius").value;
+                    if (r != null) {
+                        if (cicle == null) {
+                            cicle = new google.maps.Circle({
+                                map : map,
+                                center : myLocation,
+                                radius : parseInt(r),
+                                strokeColor: '#FF0000',
+                                strokeOpacity: 0.8,
+                                strokeWeight: 2,
+                                fillColor: '#FF0000',
+                                fillOpacity: 0.35,
+                            });
+                            return;
+                        }
+                        cicle.setRadius( parseInt(r));
+                    }
+                })
+            }, function(error) {
+                // エラーメッセージを表示
+                switch(error.code) {
+                    case 1: // PERMISSION_DENIED
+                        alert("位置情報の利用が許可されていません");
+                        break;
+                    case 2: // POSITION_UNAVAILABLE
+                        alert("現在位置が取得できませんでした");
+                        break;
+                    case 3: // TIMEOUT
+                        alert("タイムアウトになりました");
+                        break;
+                    default:
+                        alert("その他のエラー(エラーコード:"+error.code+")");
+                        break;
+                }
+            }
+        );
+    }
 
-    // Point
-    var point = new google.maps.Point( 0, -100 ) ;
-
-    // Marker
-    var marker = new google.maps.Marker( {
-        map: map ,
-        position: map.getCenter() ,
-        icon: {
-            url: "http://livedoor.blogimg.jp/jin115/imgs/7/f/7f9e279e.jpg" ,
-            scaledSize: new google.maps.Size( 200, 200 ) ,
-        } ,
-        anchorPoint: point ,
-    } ) ;
-
-    // InfoWindow
-    var infoWindow = new google.maps.InfoWindow( {
-        content: "SYNCER" ,
-    } ) ;
-
-    infoWindow.open( map, marker ) ;
+    function searchMap() {
+        var address = document.getElementById("spot_name").value;
+        document.getElementById("end_route").value = address;
+        geocoder.geocode({'address':address}, function (results, status) {
+            if (status == 'OK') {
+                searchLocation = results[0].geometry.location;
+                routeOptions.origin = searchLocation;
+                map.setCenter(searchLocation);
+                map.setZoom(15);
+                if (marker!= null) {
+                    marker.setMap(null);
+                    marker = null;
+                }
+                // マーカー設定
+                marker = new google.maps.Marker({
+                    map: map,
+                    position: searchLocation,
+                    icon : './lc.png',
+                    animation : google.maps.Animation.DROP
+                });
+                directionsDisplay.setDirections(null);
+            } else {
+                window.alert('Geocode was not successful for the following reason: ' + status);
+            }
+        });
+    }
+    function calcRoute() {
+        routeOptions.origin = myLocation;
+        routeOptions.destination = searchLocation;
+        routeOptions.travelMode = document.getElementById("drivingMode").value;
+        directionsService.route(routeOptions, function (result, status) {
+            if (status == 'OK') {
+                directionsDisplay.setDirections(result);
+                directionsDisplay.setMap(map);
+            }
+        });
+    }
 </script>
 <iframe src="https://www.google.com/maps/embed/v1/place?key=AIzaSyDbSCIe9u9tyzmG1OdAae8eRLPGmK5sevc&zoom=16&q=35.703496,139.751989&center=35.703496,139.751989" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
 </body>

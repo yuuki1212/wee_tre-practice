@@ -11,10 +11,4 @@
 |
 */
 
-//Route::namespace('/t')
-
-Route::get('/', function () {
-    return view('top');
-});
-
-Route::post('/search', 'SearchController@index');
+Route::get('/', 'HomeController@index');

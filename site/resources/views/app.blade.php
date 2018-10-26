@@ -61,10 +61,8 @@
     </div>
     <div class="pmd-sidebar-overlay"></div>
 </nav>
-<div class="col-md-12">
-    <div class="">
-        @yield('content')
-    </div>
+<div class="pmd-content">
+    @yield('content')
 </div>
 <script src="{{ asset('js/jquery-3.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ asset('js/bootstrap.min.js') }}" type="text/javascript"></script>

@@ -15,9 +15,9 @@ class CreateEventsTable extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('event_id', 50)->comment('イベントID');
-            $table->string('event_name', 50)->comment('イベント名');
-            $table->string('event_title', 50)->comment('タイトル');
+            $table->string('event_id')->comment('イベントID');
+            $table->string('event_name')->comment('イベント名');
+            $table->string('event_title')->comment('タイトル');
             $table->text('event_detail')->comment('詳細');
             $table->string('price')->comment('料金');
             $table->string('event_date')->comment('開催日');
